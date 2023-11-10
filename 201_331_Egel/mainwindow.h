@@ -57,7 +57,7 @@ private slots:
 
     //Нажатие на кнопки
     void on_pushButton_2_clicked();
-    void on_pushButton_clicked();
+    void on_PushButton_clicked();
 
 private:
     Ui::MainWindow *ui;

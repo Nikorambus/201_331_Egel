@@ -214,7 +214,9 @@ void MainWindow::on_pushButton_2_clicked()
 
 }
 
-void MainWindow::on_pushButton_clicked()
+
+
+void MainWindow::on_PushButton_clicked()
 {
     number_of_account-= 1;
     if (number_of_account == -1) {

@@ -22,7 +22,7 @@ int main()
         std::cout << "Pid = " << std::dec << pi.dwProcessId << std::endl;
     }
     else {
-        std::cout << "Process is not created!"<< std::endl;
+        std::cout << "Process is not created!"<< std::endl; //Процесс не запустился
     }
 
     //Подключение к приложению как отладчик

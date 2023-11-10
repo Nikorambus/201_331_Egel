@@ -102,7 +102,7 @@ int MainWindow::show_bank_window() {
 
 
     QJsonObject jsonObject = jsonDocument.object();
-    int i = 0;
+
     for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
         // Получаем подобъект для каждого аккаунта
         QJsonObject accountObject = it.value().toObject();
@@ -129,3 +129,52 @@ int MainWindow::show_bank_window() {
     ui->label_date->setText(list_of_account[0][2]);
     return 0;
 }
+
+QString MainWindow::decrypt_file(QByteArray encrypt_data){
+    //Расшифровка
+    unsigned char decrypt_number[512];
+    int decrypt_len = decrypt((unsigned char*)QByteArray::fromBase64(encrypt_data).data(), encrypt_data.length(),key,iv,decrypt_number);
+    decrypt_number[decrypt_len] = '\0';
+    QByteArray decrypt_bit =  QByteArray::fromRawData((const char*)decrypt_number, decrypt_len);
+
+    return decrypt_bit.data();
+}
+
+
+int MainWindow::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+                        unsigned char *iv, unsigned char *decryptext)
+{
+    EVP_CIPHER_CTX *ctx;
+
+    int len;
+
+    int decryptext_len;
+
+    if(!(ctx = EVP_CIPHER_CTX_new()))
+        crypt_error();
+
+
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv))
+        crypt_error();
+
+
+    if(1 != EVP_DecryptUpdate(ctx, decryptext, &len, ciphertext, ciphertext_len))
+        crypt_error();
+    decryptext_len = len;
+
+
+    if(1 != EVP_DecryptFinal_ex(ctx, decryptext + len, &len))
+        crypt_error();
+    decryptext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+
+    return decryptext_len;
+}
+
+
+int MainWindow::crypt_error(void)
+{
+    return 1;
+}
+

@@ -2,8 +2,6 @@
 #include "ui_mainwindow.h"
 #include "QPushButton"
 #include "QMessageBox"
-#include "QRandomGenerator"
-
 #include "QByteArray"
 #include "QFile"
 #include "QJsonDocument"
@@ -72,6 +70,7 @@ int MainWindow::check_pin_code() {
 }
 
 int MainWindow::show_bank_window() {
+    //Открываем файл на чтение
     QFile encrypt_file;
     encrypt_file.setFileName("D:/GitExam/201_331_Egel/data.json");
     encrypt_file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -80,29 +79,30 @@ int MainWindow::show_bank_window() {
         qDebug() << "Ошибка в открытии исходного файла";
         return 0;
     }
+
+    //Считываем зашифрованные данные
     QString encrypt_data = encrypt_file.readAll();
 
+    //Расшифровываем данные
     QString decrypt_data = decrypt_file(encrypt_data.toUtf8());
 
+    //Подготавливаем для формата json
     int lastIndex = decrypt_data.lastIndexOf('}');
-
-    // Обрезаем строку после последнего символа новой строки
     QString trimdecrypt_data = decrypt_data.left(lastIndex);
-
     trimdecrypt_data[trimdecrypt_data.length() - 1] = '\n';
     trimdecrypt_data[trimdecrypt_data.length() - 1] = '}';
 
+    //Вывод
     qDebug() << "Расшифрованный файл: " + trimdecrypt_data;
 
-
+    //Переводим данные в байты
     QByteArray temp = trimdecrypt_data.toUtf8();
     qDebug() << temp.data();
 
+    //Переводим данные в json
     QJsonDocument jsonDocument = QJsonDocument::fromJson(temp);
 
-
     QJsonObject jsonObject = jsonDocument.object();
-
     for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
         // Получаем подобъект для каждого аккаунта
         QJsonObject accountObject = it.value().toObject();
@@ -116,17 +116,39 @@ int MainWindow::show_bank_window() {
         // Выводим информацию
         qDebug() << "ID:" << id << "Sum:" << sum << "Date:" << date;
 
+        //Добавляем информацию в общий лист (сначала создаем темповые вектор)
         QVector<QString> temp;
         temp.push_back(id);
         temp.push_back(QString::number(sum));
         temp.push_back(date);
 
+        //Добавление в лист
         list_of_account.push_back(temp);
     }
 
-    ui->label_account->setText(list_of_account[0][0]);
-    ui->label_sum->setText(list_of_account[0][1]);
-    ui->label_date->setText(list_of_account[0][2]);
+    //Отрисовываем текущий счет
+    paint_data(number_of_account);
+    return 0;
+}
+
+int MainWindow::paint_data(int number_of_account)
+{
+    //Красим в зависимости от карты
+    if (number_of_account == 0) {
+        this->setStyleSheet("background-color: brown;");
+    }
+    else if (number_of_account == 1) {
+        this->setStyleSheet("background-color: #8732a8;");
+    }
+    else if (number_of_account == 2) {
+        this->setStyleSheet("background-color: #327da8;");
+    }
+
+    //Вводим данные в окно
+    ui->label_account->setText(list_of_account[number_of_account][0]);
+    ui->label_sum->setText(list_of_account[number_of_account][1]);
+    ui->label_date->setText(list_of_account[number_of_account][2]);
+
     return 0;
 }
 
@@ -176,5 +198,28 @@ int MainWindow::decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned 
 int MainWindow::crypt_error(void)
 {
     return 1;
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+
+    number_of_account+= 1;
+    if (number_of_account == 3) {
+        number_of_account = 0;
+    }
+
+    qDebug() << "number_of_account" << number_of_account;
+    paint_data(number_of_account);
+
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    number_of_account-= 1;
+    if (number_of_account == -1) {
+        number_of_account = 2;
+    }
+    paint_data(number_of_account);
 }
 

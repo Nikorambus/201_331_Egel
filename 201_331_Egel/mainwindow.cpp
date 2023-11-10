@@ -70,3 +70,62 @@ int MainWindow::check_pin_code() {
         return 0;
     }
 }
+
+int MainWindow::show_bank_window() {
+    QFile encrypt_file;
+    encrypt_file.setFileName("D:/GitExam/201_331_Egel/data.json");
+    encrypt_file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    if (!encrypt_file.isOpen()) {
+        qDebug() << "Ошибка в открытии исходного файла";
+        return 0;
+    }
+    QString encrypt_data = encrypt_file.readAll();
+
+    QString decrypt_data = decrypt_file(encrypt_data.toUtf8());
+
+    int lastIndex = decrypt_data.lastIndexOf('}');
+
+    // Обрезаем строку после последнего символа новой строки
+    QString trimdecrypt_data = decrypt_data.left(lastIndex);
+
+    trimdecrypt_data[trimdecrypt_data.length() - 1] = '\n';
+    trimdecrypt_data[trimdecrypt_data.length() - 1] = '}';
+
+    qDebug() << "Расшифрованный файл: " + trimdecrypt_data;
+
+
+    QByteArray temp = trimdecrypt_data.toUtf8();
+    qDebug() << temp.data();
+
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(temp);
+
+
+    QJsonObject jsonObject = jsonDocument.object();
+    int i = 0;
+    for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
+        // Получаем подобъект для каждого аккаунта
+        QJsonObject accountObject = it.value().toObject();
+
+
+        // Извлекаем информацию
+        QString id = accountObject.value("id").toString();
+        int sum = accountObject.value("sum").toInt();
+        QString date = accountObject.value("date").toString();
+
+        // Выводим информацию
+        qDebug() << "ID:" << id << "Sum:" << sum << "Date:" << date;
+
+        QVector<QString> temp;
+        temp.push_back(id);
+        temp.push_back(QString::number(sum));
+        temp.push_back(date);
+
+        list_of_account.push_back(temp);
+    }
+
+    ui->label_account->setText(list_of_account[0][0]);
+    ui->label_sum->setText(list_of_account[0][1]);
+    ui->label_date->setText(list_of_account[0][2]);
+    return 0;
+}
